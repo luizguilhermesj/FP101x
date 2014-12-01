@@ -10,16 +10,16 @@ import Data.Char
 -- ===================================
 
 toDigits :: Integer -> [Integer]
-toDigits 0 = [0]
-toDigits x = toDigits (x `div` 10) ++ [x `mod` 10]
+toDigits x | x <= 9 = [x]
+           | otherwise  = toDigits (x `div` 10) ++ [x `mod` 10]
 
 -- ===================================
 -- Ex. 1
 -- ===================================
 
 toDigitsRev :: Integer -> [Integer]
-toDigitsRev 0 = []
-toDigitsRev x = [x `mod` 10] ++ toDigits (x `div` 10)
+toDigitsRev x | x <= 9 = [x]
+           | otherwise  = [x `mod` 10] ++ toDigitsRev (x `div` 10)
 
 -- ===================================
 -- Ex. 2
@@ -48,7 +48,7 @@ isValid n = (sumDigits (doubleSecond (toDigitsRev n))) `mod` 10 == 0
 -- ===================================
 -- Ex. 5
 -- ===================================
-    
+
 numValid :: [Integer] -> Integer
 numValid xs = sum . map (\_ -> 1) $ filter isValid xs
 
