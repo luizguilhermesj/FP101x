@@ -1,6 +1,7 @@
 import Lab2
 import Data.Char
 import Data.Bits
+import Parsing
 
 add :: (Int, Int) -> Int
 add (x,y) = x+y
@@ -80,8 +81,8 @@ compose = foldr (.) id
 
 -- sumsqreven = compose [sum, map (^2), filter even]
 
-curry :: ((a, b) -> c) -> a -> b -> c
-curry f = \x y -> f (x, y)
+curry' :: ((a, b) -> c) -> a -> b -> c
+curry' f = \x y -> f (x, y)
 
 uncurry' :: (a -> b -> c) -> (a, b) -> c
 uncurry' f = \ (x, y) -> f x y
@@ -121,3 +122,12 @@ test3 = even . (double . triple)
 
 test4 :: Integer -> Bool
 test4 = (even . double) . triple
+
+p :: Parser (Char, Char)
+p = do x <- item
+       item
+       y <- item
+       return (x, y)
+
+eval :: String -> Int
+eval xs = fst (head (parse expr xs))
