@@ -1,7 +1,10 @@
 import Lab2
+import Lab4
 import Data.Char
 import Data.Bits
-import Parsing
+-- import Parsing
+
+import System.IO
 
 add :: (Int, Int) -> Int
 add (x,y) = x+y
@@ -131,3 +134,142 @@ p = do x <- item
 
 eval :: String -> Int
 eval xs = fst (head (parse expr xs))
+
+hangman :: IO ()
+hangman =
+    do putStrLn "Think of a word: "
+       word <- sgetLine
+       putStrLn "Try to guess it:"
+       guess word
+
+sgetLine :: IO String
+sgetLine = do x <- getCh
+              if x == '\n' then
+                 do putChar x
+                    return []
+              else
+                 do putChar '-'
+                    xs <- sgetLine
+                    return (x:xs)
+
+getCh :: IO Char
+getCh = do hSetEcho stdin False
+           c <- getChar
+           hSetEcho stdin True
+           return c
+
+guess :: String -> IO ()
+guess word =
+    do putStr "> "
+       xs <- getLine
+       if xs == word then
+          putStrLn "You got it!"
+       else
+          do putStrLn (diff word xs)
+             guess word
+
+diff :: String -> String -> String
+diff xs ys =  [if elem x ys then x else '-' | x <- xs]
+
+sequence_' :: Monad m => [m a] -> m ()
+-- sequence_' [] = return ()
+-- ### sequence_' ms = foldr (>>) (return []) ms
+sequence_' ms = foldr (>>) (return ()) ms
+-- ### sequence_' ms = foldr (>>=) (return ()) ms
+-- sequence_' (m : ms) = m >>= \_ -> sequence_' ms
+-- sequence_' (m : ms) = m >> sequence_' ms
+-- ### sequence_' ms = foldl (>>) (return ()) ms
+-- sequence_' (m : ms) = (foldl (>>) m ms) >> return ()
+-- ### sequence_' (m : ms) = m >> \_ -> sequence_' ms
+
+
+sequence' :: Monad m => [m a] -> m [a]
+sequence' [] = return []
+sequence' (m : ms)
+  = m >>=
+      \a ->
+       do as <- sequence' ms
+          return (a:as)
+
+{-|
+sequence' [] = return []
+sequence' (m : ms) = return (a : as)
+    where
+      a <- m
+      as <- sequence' ms
+
+
+
+sequence' ms = foldr func (return []) ms
+  where
+      func :: (Monad m) => m a -> m [a] -> m [a]
+      func m acc
+        = do x <- m
+             xs <- acc
+             return (x:xs)
+
+
+sequence' [] = return []
+sequence' (m : ms)
+  = m >>
+      \a ->
+       do as <- sequence' ms
+          return (a:as)
+
+sequence' [] = return []
+sequence' (m : ms) = m >>= \a ->
+            as <- sequence' ms
+            return (a:as)
+
+sequence' [] = return []
+sequence' (m : ms)
+  = do a <- m
+       as <- sequence' ms
+       return (a:as)
+-}
+
+mapM' :: Monad m => (a -> m b) -> [a] -> m [b]
+mapM' f [] = return []
+mapM' f (a : as) =
+  f a >>= \b -> do bs <- mapM' f as
+                   return (b:bs)
+{-|
+
+mapM' f as = sequence' (map f as)
+
+mapM' f (a:as)
+  = f a >>= \b -> mapM' f as >>= \bs -> return (b : bs)
+-}
+
+
+filterM' :: Monad m => (a -> m Bool) -> [a] -> m [a]
+filterM' _ [] = return []
+filterM' p (x: xs)
+  = do flag <- p x
+       ys <- filterM' p xs
+       if flag then return (x:ys) else return ys
+
+foldLeftM :: Monad m => (a -> b -> m a) -> a -> [b] -> m a
+foldLeftM f a [] = return a
+foldLeftM f a (x:xs) = f a x >>= \a' -> foldLeftM f a' xs
+
+
+foldRightM :: Monad m => (a -> b -> m b) -> b -> [a] -> m b
+foldRightM f b [] = return b
+foldRightM f b (a : as) = (foldRightM f b as) >>= \b' -> f a b'
+
+
+
+liftM :: Monad m => (a -> b) -> m a -> m b
+liftM f m
+  = do x <- m
+       return (f x)
+
+liftM' :: Monad m => (a -> b) -> m a -> m b
+liftM' f m = m >>= \a -> return (f a)
+
+f :: (Eq a, Num a) => (a -> a) -> a -> a
+f = \f n -> if (n == 0) then 1 else n * f (n - 1)
+
+k :: Integer -> Integer
+k n = n +
