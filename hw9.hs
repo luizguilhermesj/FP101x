@@ -61,6 +61,10 @@ balance [x] = Leaf x
 balance xs = Node (balance ys) (balance zs)
   where (ys, zs) = halve xs
 
+class Monoid a where
+    mempty :: a
+    (<>) :: a -> a -> a
+
 {-
 data Nat = Zero | Succ Nat
 
